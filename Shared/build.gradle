@@ -20,6 +20,7 @@ dependencies {
     compile 'com.google.android.gms:play-services-wearable:10.0.1'
     compile 'com.google.android.gms:play-services-location:10.0.1'
     compile 'com.google.maps.android:android-maps-utils:0.3.4'
+    compile 'com.google.android.gms:play-services-maps:10.0.1'
 }
 
 // The sample build uses multiple directories to
