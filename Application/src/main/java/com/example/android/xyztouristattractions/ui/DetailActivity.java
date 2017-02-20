@@ -24,8 +24,10 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.ViewTreeObserver;
 
 import com.example.android.xyztouristattractions.R;
 
@@ -41,8 +43,17 @@ public class DetailActivity extends AppCompatActivity {
     public static void launch(Activity activity, String attraction, View heroView) {
         Intent intent = getLaunchIntent(activity, attraction);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Pair heroViewPair = Pair.create(heroView, heroView.getTransitionName());
+            View decor = activity.getWindow().getDecorView();
+            View status = decor.findViewById(android.R.id.statusBarBackground);
+            View nav = decor.findViewById(android.R.id.navigationBarBackground);
+            Pair statusPair = Pair.create(status, status.getTransitionName());
+            Pair navPair = Pair.create(nav, nav.getTransitionName());
             ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                    activity, heroView, heroView.getTransitionName());
+                    activity,
+                    heroViewPair,
+                    statusPair,
+                    navPair);
             ActivityCompat.startActivity(activity, intent, options.toBundle());
         } else {
             activity.startActivity(intent);
@@ -59,6 +70,22 @@ public class DetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            // Postpone the transition until the window's decor view has finished its layout.
+            postponeEnterTransition();
+
+            final View decor = getWindow().getDecorView();
+            decor.getViewTreeObserver().addOnPreDrawListener(
+                    new ViewTreeObserver.OnPreDrawListener() {
+                        @Override
+                        public boolean onPreDraw() {
+                            decor.getViewTreeObserver().removeOnPreDrawListener(this);
+                            startPostponedEnterTransition();
+                            return true;
+                        }
+            });
+        }
 
         String attraction = getIntent().getStringExtra(EXTRA_ATTRACTION);
         if (savedInstanceState == null) {
